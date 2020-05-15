@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="admin/_fragments::head(~{::title})">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width-device-width,initial-scale=1.0">
+    <title>管理后台</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <link rel="stylesheet" href="../../static/css/me.css">
+</head>
+<body>
+    <!--导航栏-->
+    <nav class="ui inverted attached segment m-padded-tb-mini" th:replace="admin/_fragments::nav(1)">
+        <div class="ui container">
+            <div class="ui inverted stackable secondary menu">
+                <h2 class="ui teal header item">管理后台</h2>
+                <a href="#" class="item m-mobile-hide ctrlmenu"><i class="home icon"></i> 博客</a>
+                <a href="#" class="item m-mobile-hide ctrlmenu"><i class="idea icon"></i>分类</a>
+                <a href="#" class="item m-mobile-hide ctrlmenu"><i class="tags icon"></i> 标签</a>
+                <div class="right menu m-mobile-hide ctrlmenu">
+                    <div class="ui dropdown item">
+                        <div class="text"><img src="https://picsum.photos/id/1/100/100" alt="" class="ui avatar image"> today</div>
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            <a href="#" class="black item">注销</a>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="#" class="ui black icon button m-right-top m-mobile-show" id="displaymenubutton">
+            <i class="sidebar icon"></i>
+        </a>
+    </nav>
+
+    <!--二级导航-->
+    <div class="ui attached pointing menu">
+        <div class="ui container">
+            <div class="right menu">
+                <div class="active item">投稿</div>
+                <div class="item">列表</div>
+            </div>
+        </div>
+    </div>
+
+    <!--中间内容-->
+    <div class="m-padded-tb-large m-container">
+        <div class="ui container">
+            <div class="ui middle aligned segment form">
+                <input type="hidden" name="page">
+
+                <div class="inline fields">
+                    <div class="field">
+                        <input type="text" name="title" placeholder="标题">
+                    </div>
+                    <div class="field">
+                        <select class="ui dropdown" name="typeid">
+                            <option value="0">类型</option>
+                            <option th:each="type:${types}" th:value="${type.id}" th:text="${type.name}" value="1">Male</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="ui checkbox">
+                            <input type="checkbox" id="recommend" name="recommend">
+                            <label for="recommend">推荐</label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <button class="ui basic teal mini button" id="search">
+                            <i class="search icon"></i>搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="newdata">
+            <table  th:fragment="blogList" class="ui center aligned table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>标题</th>
+                        <th>类型</th>
+                        <th>推荐</th>
+                        <th>更新时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="blog,iterStat : ${page.content}">
+                        <td th:text="${iterStat.count}">1</td>
+                        <td th:text="${blog.title}">刻意练习</td>
+                        <td th:text="${blog.type.name}">认知升级</td>
+                        <td th:text="${blog.recommend} == true ? '是':'否'">是</td>
+                        <td th:text="${blog.updateTime}">2019-9-10 09:57</td>
+                        <td>
+                            <a href="#" th:href="@{/admin/blog/{id}/peek(id=${blog.id})}" class="ui mini teal button">查看</a>
+                            <a href="#" th:href="@{/admin/blog/{id}/modify(id=${blog.id})}" class="ui mini teal button">修改</a>
+                            <a href="#" th:href="@{/admin/blog/{id}/delete(id=${blog.id})}" class="ui mini red button">删除</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="6">
+                            <a href="#" class="ui left floated mini red button" th:href="@{/admin/editblog}">新增</a>
+                            <div class="ui right floated pagination menu">
+                                <a onclick="page(this)" th:href="#" th:attr="page-data=${page.number}-1" class="icon item" th:unless="${page.first}">
+                                    <i class="left chevron icon"></i>
+                                </a>
+                                <a href="#" class="icon item">
+                                    <i class="chevron icon" th:text="${page.number}+1">1</i>
+                                </a>
+                                <a href="#" class="icon item" onclick="page(this)" th:attr="data-page=${page.number}+1" th:unless="${page.last}">
+                                    <i class="right chevron icon"></i>
+                                </a>
+                            </div>
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+            </div>
+        </div>
+
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.2/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+<script>
+    $('#displaymenubutton').click(function () {
+        $('.ctrlmenu').toggleClass('m-mobile-hide');
+    });
+
+    $('.ui.dropdown')
+        .dropdown({
+            on : 'hover'
+        })
+    ;
+
+    function page(obj){
+        $("[name='page']").val($(obj).data("page"));
+        //alert($("[name='page']").val());
+        loaddata();
+    }
+
+    $("#search").click(function(){
+        $("[name='page']").val(0);
+        loaddata();
+    });
+    //发送请求
+    function loaddata(){
+        $("#newdata").load("/admin/blog/search",{
+            title : $("[name='title']").val(),
+            typeid : $("[name='typeid']").val(),
+            recommend : $("[name='recommend']").prop('checked'),
+            page : $("[name='page']").val()
+        });
+    }
+</script>
+</body>
+</html>
